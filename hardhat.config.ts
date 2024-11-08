@@ -1,6 +1,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import { HttpNetworkAccountsUserConfig } from "hardhat/types";
+import "dotenv/config";
 
 const {
   SEPOLIA_RPC_URL,
@@ -22,7 +23,7 @@ if (accounts == null) {
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.20",
+    version: "0.8.27",
     settings: {
       optimizer: {
         enabled: true,

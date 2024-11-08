@@ -4,7 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "npx hardhat node",
+    "build": "yarn clean && yarn compile",
+    "test": "npx hardhat test --show-stack-traces",
+    "size": "yarn hardhat size-contracts",
+    "clean": "npx hardhat clean",
+    "compile": "npx hardhat compile",
+    "coverage": "npx hardhat coverage"
   },
   "keywords": [],
   "author": "",
@@ -30,5 +36,8 @@
     "ts-node": ">=8.0.0",
     "typechain": "^8.3.0",
     "typescript": ">=4.5.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
   }
 }
