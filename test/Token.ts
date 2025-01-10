@@ -1,18 +1,23 @@
 import hre from "hardhat";
 import { expect } from "chai";
 
-import {
-  time,
-  loadFixture,
-} from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import exp from "constants";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { ZeroAddress } from "ethers";
+
+const toWei = (value: string) => {
+  return hre.ethers.parseEther(value.toString());
+};
+
+const toEther = (value: bigint) => {
+  return hre.ethers.formatEther(value);
+};
 
 describe("Token", function () {
   async function deployTokenFixture() {
     const name = "Zap Token";
     const symbol = "ZAP";
     const decimals = BigInt(18);
-    const totalSupply = BigInt("5000000000000000000000000");
+    const totalSupply = toWei("5000000");
     // We load the fixture
     const MyToken = await hre.ethers.getContractFactory("Token");
     const myToken = await MyToken.deploy();
@@ -66,20 +71,56 @@ describe("Token", function () {
       const receiverBalance = await myToken.balanceOf(receiver.address);
       console.log("Receiver balance:", receiverBalance.toString());
 
-      const amount = BigInt(100);
+      const amount = toWei("100");
 
-      expect(await myToken.transfer(receiver.address, amount)).to.emit(
-        myToken,
-        "Transfer"
-      );
+      await myToken.transfer(receiver.address, amount);
 
       const newSenderBalance = await myToken.balanceOf(sender.address);
-      console.log("New sender balance:", newSenderBalance.toString());
+      console.log("New sender balance:", toEther(newSenderBalance));
       const newReceiverBalance = await myToken.balanceOf(receiver.address);
-      console.log("New receiver balance:", newReceiverBalance.toString());
+      console.log("New receiver balance:", toEther(newReceiverBalance));
 
       expect(newSenderBalance).to.equal(senderBalance - amount);
       expect(newReceiverBalance).to.equal(receiverBalance + amount);
+      expect(toEther(newReceiverBalance)).to.equal(toEther(amount));
+    });
+
+    it("Should emit a Transfer event", async function () {
+      const { myToken } = await loadFixture(deployTokenFixture);
+
+      const [sender, receiver] = await hre.ethers.getSigners();
+
+      const amount = toWei("100");
+
+      await expect(myToken.transfer(receiver.address, amount))
+        .to.emit(myToken, "Transfer")
+        .withArgs(sender.address, receiver.address, amount);
+    });
+
+    it("Rejects transfers above the sender balance", async function () {
+      const { myToken } = await loadFixture(deployTokenFixture);
+
+      const [sender, receiver] = await hre.ethers.getSigners();
+
+      const senderBalance = await myToken.balanceOf(sender.address);
+
+      const amount = senderBalance + toWei("1");
+
+      await expect(
+        myToken.transfer(receiver.address, amount)
+      ).to.be.revertedWith(
+        "VM Exception while processing transaction: revert ERC20: transfer amount exceeds balance"
+      );
+    });
+
+    it("Rejects transfers from zero address", async function () {
+      const { myToken } = await loadFixture(deployTokenFixture);
+
+      const amount = toWei("1");
+
+      await expect(myToken.transfer(ZeroAddress, amount)).to.be.revertedWith(
+        "ERC20: transfer to the zero address"
+      );
     });
   });
 });
