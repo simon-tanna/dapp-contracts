@@ -3,14 +3,7 @@ import { expect } from "chai";
 
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ZeroAddress } from "ethers";
-
-const toWei = (value: string) => {
-  return hre.ethers.parseEther(value.toString());
-};
-
-const toEther = (value: bigint) => {
-  return hre.ethers.formatEther(value);
-};
+import { toWei, toEther } from "./helpers/conversions";
 
 describe("Token", function () {
   async function deployTokenFixture() {
